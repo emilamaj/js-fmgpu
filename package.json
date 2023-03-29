@@ -1,0 +1,17 @@
+{
+  "name": "js-fmgpu",
+  "version": "1.0.0",
+  "description": "Fast Matrix operations accelerated by GPU.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Emile Amajar",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  },
+  "dependencies": {
+    "gpu.js": "^2.16.0"
+  }
+}
