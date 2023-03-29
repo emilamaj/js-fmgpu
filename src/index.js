@@ -273,6 +273,79 @@ function solveLinearSystemGPU(A, b) {
     return x;
 }
 
+// Matrix inverse GPU
+function inverseGPU(A) {
+    const n = A.length;
+
+    // Create the augmented matrix (A|I)
+    const augmentedMatrix = A.map((row, i) => [...row, ...Array(n).fill(0).map((_, j) => i === j ? 1 : 0)]);
+
+    // Define GPU kernels:
+    // Swap two rows of a matrix
+    const swapRowsKernel = gpu.createKernel(function (matrix, row1, row2) {
+        if (row1 === row2) return matrix[this.thread.y][this.thread.x];
+
+        if (this.thread.y === row1) {
+            return matrix[row2][this.thread.x];
+        } else if (this.thread.y === row2) {
+            return matrix[row1][this.thread.x];
+        } else {
+            return matrix[this.thread.y][this.thread.x];
+        }
+    }).setOutput([2 * n, n]).setPipeline(true);
+
+    // Normalize a row of a matrix
+    const normalizeRowKernel = gpu.createKernel(function (matrix, row) {
+        if (this.thread.y !== row) return matrix[this.thread.y][this.thread.x];
+
+        const factor = matrix[row][row];
+        return matrix[this.thread.y][this.thread.x] / factor;
+    }).setOutput([2 * n, n]).setPipeline(true);
+
+    // Eliminate a row of a matrix
+    const eliminateKernel = gpu.createKernel(function (matrix, row) {
+        if (this.thread.y <= row) return matrix[this.thread.y][this.thread.x];
+
+        const factor = matrix[this.thread.y][row] / matrix[row][row];
+        return matrix[this.thread.y][this.thread.x] - factor * matrix[row][this.thread.x];
+    }).setOutput([2 * n, n]).setPipeline(true);
+
+    // Transfer the augmented matrix to the GPU
+    let gpuMatrix = gpu.createKernel(function (matrix) {
+        return matrix[this.thread.y][this.thread.x];
+    }).setOutput([2 * n, n]).setPipeline(true)(augmentedMatrix);
+
+    // Extract the inverse matrix
+    const extractInverseKernel = gpu.createKernel(function (matrix) {
+        return matrix[this.thread.y][this.thread.x + n];
+    }).setOutput([n, n]);
+
+    // Gaussian elimination
+    for (let i = 0; i < n; i++) {
+        // Find the pivot row. Note that we don't need to transfer the matrix back to the CPU
+        let pivotRow = i;
+        for (let j = i + 1; j < n; j++) {
+            if (Math.abs(augmentedMatrix[j][i]) > Math.abs(augmentedMatrix[pivotRow][i])) {
+                pivotRow = j;
+            }
+        }
+
+        // Swap rows
+        gpuMatrix = swapRowsKernel(gpuMatrix, i, pivotRow);
+
+        // Normalize row
+        gpuMatrix = normalizeRowKernel(gpuMatrix, i);
+
+        // Eliminate
+        gpuMatrix = eliminateKernel(gpuMatrix, i);
+    }
+
+    // Extract the inverse matrix
+    const inverse = extractInverseKernel(gpuMatrix);
+
+    return inverse;
+}
+
 module.exports = { 
     scale, 
     add,
