@@ -68,7 +68,7 @@ function hadamard(A, B) {
 }
 
 // Multiply two matrices
-function matmul(A, B) {
+function dot(A, B) {
     const n = A.length;
 
     // Define GPU kernel
@@ -105,45 +105,40 @@ function detJS(A) {
 }
 
 // Matrix equality
-function equal(A, B) {
+function equals(A, B, epsilon = 1e-6) {
     const n = A.length;
 
     // Define GPU kernel to return equality matrix C
     const equalKernel = gpu.createKernel(function (A, B) {
-        return Math.abs(A[this.thread.y][this.thread.x] - B[this.thread.y][this.thread.x]) < this.constants.epsilon;
-    }).setOutput([n, n]).setConstants({ epsilon: 1e-6 }).setPipeline(true);
+        if (Math.abs(A[this.thread.y][this.thread.x] - B[this.thread.y][this.thread.x]) < this.constants.epsil) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }).setOutput([n, n]).setConstants({ epsil: epsilon });
 
     // GPU kernel to reduce C to a boolean vector V
     const reduceKernel = gpu.createKernel(function (C) {
-        let and = true;
+        let and = 1;
         for (let i = 0; i < this.constants.size; i++) {
-            and = and && C[i];
+            and = and * C[i];
         }
-    }).setOutput([n]).setConstants({ size: n }).setPipeline(true);
+        return and;
+    }).setOutput([n]).setConstants({ size: n });
 
     // GPU kernel to reduce to a single boolean
     const reduceKernel2 = gpu.createKernel(function (V) {
-        let and = true;
+        let and = 1;
         for (let i = 0; i < this.constants.size; i++) {
-            and = and && V[i];
+            and = and * V[i];
         }
+        return and;
     }).setOutput([1]).setConstants({ size: n });
-        
-    // Apply kernels
-    return reduceKernel2(reduceKernel(equalKernel(A, B)));
-}
 
-// Element-wise map function. Note that complex expressions for f likely won't compile as a GPU kernel. f shouldn't call other functions or use advanced JS features. Most Math functions should work.
-function map(A, f) {
-    const n = A.length;
-
-    // Define GPU kernel
-    const mapKernel = gpu.createKernel(function (A) {
-        return f(A[this.thread.y][this.thread.x]);
-    }).setOutput([n, n]);
-
-    // Apply kernel
-    return mapKernel(A);
+    // Combine kernels
+    return gpu.combineKernels(reduceKernel2, reduceKernel, equalKernel, function (A, B) {
+        return reduceKernel2(reduceKernel(equalKernel(A, B)));
+    })(A, B) == 1;
 }
 
 // Version 0: Pure JS implementation for reference (very good for small matrices, N < 200)
@@ -346,16 +341,38 @@ function inverseGPU(A) {
     return inverse;
 }
 
-module.exports = { 
-    scale, 
+// // Element-wise map function. Note that complex expressions for f likely won't compile as a GPU kernel. f shouldn't call other functions or use advanced JS features. Most Math functions should work.
+// function map(A, lambda) { // lambda must not be anonymous
+//     const n = A.length;
+
+//     let func = function (x) {
+//         return lambda(x);
+//     }
+    
+//     // Define GPU kernel
+//     const mapKernel = gpu.createKernel(function (A) {
+//         return f(A[this.thread.y][this.thread.x]);
+//     }).setOutput([n, n]).setFunctions([{
+//         name: 'f',
+//         source: func.toString(),
+//         returnType: 'Number',
+//         argumentTypes: ['Number']
+//     }]);
+
+//     // Apply kernel
+//     return mapKernel(A);
+// }
+
+module.exports = {
+    scale,
     add,
     sub,
     transpose,
     hadamard,
-    matmul,
+    dot,
     detJS,
-    equal,
-    map,
+    equals,
     solveLinearSystemJS,
     solveLinearSystemGPU
+    // map,
 };
