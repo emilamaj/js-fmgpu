@@ -142,7 +142,7 @@ function equals(A, B, epsilon = 1e-6) {
 }
 
 // Version 0: Pure JS implementation for reference (very good for small matrices, N < 200)
-function solveLinearSystemJS(A, b) {
+function solveLinearSystemSmall(A, b) {
     const n = A.length;
 
     // Create the augmented matrix (A|b)
@@ -190,8 +190,8 @@ function solveLinearSystemJS(A, b) {
     return x;
 }
 
-// Version 2: Use of pipelining to minize transfers between CPU and GPU (better for large matrices)
-function solveLinearSystemGPU(A, b) {
+// Version 2: Use of pipelining to minize transfers between CPU and GPU (better for large matrices N > 200)
+function solveLinearSystem(A, b) {
     const n = A.length;
 
     // Create the augmented matrix (A|b)
@@ -269,7 +269,7 @@ function solveLinearSystemGPU(A, b) {
 }
 
 // Matrix inverse GPU
-function inverseGPU(A) {
+function inverse(A) {
     const n = A.length;
 
     // Create the augmented matrix (A|I)
@@ -312,8 +312,8 @@ function inverseGPU(A) {
 
     // Extract the inverse matrix
     const extractInverseKernel = gpu.createKernel(function (matrix) {
-        return matrix[this.thread.y][this.thread.x + n];
-    }).setOutput([n, n]);
+        return matrix[this.thread.y][this.thread.x + this.constants.n];
+    }).setOutput([n, n]).setConstants({ n });
 
     // Gaussian elimination
     for (let i = 0; i < n; i++) {
@@ -372,7 +372,8 @@ module.exports = {
     dot,
     detJS,
     equals,
-    solveLinearSystemJS,
-    solveLinearSystemGPU
+    solveLinearSystemSmall,
+    solveLinearSystem,
+    // inverse,
     // map,
 };
