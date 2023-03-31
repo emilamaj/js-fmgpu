@@ -21,6 +21,10 @@ jobs:
 
       - name: Clean install deps
         run: npm ci
+          
+      - name: Set up .npmrc file
+        run: |
+          echo "NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}" > .npmrc
 
       - name: Publish to NPM
         run: npm publish --access public --registry=https://registry.npmjs.org/
