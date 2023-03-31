@@ -24,7 +24,8 @@ jobs:
           
       - name: Set up .npmrc file
         run: |
-          echo "NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}" > .npmrc
+          echo "registry=https://registry.npmjs.org/" >> $HOME/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> $HOME/.npmrc
 
       - name: Publish to NPM
         run: npm publish --access public --registry=https://registry.npmjs.org/
