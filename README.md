@@ -1,7 +1,10 @@
+[![Publish to npm](https://github.com/emilamaj/js-fmgpu/actions/workflows/main.yml/badge.svg)](https://github.com/emilamaj/js-fmgpu/actions/workflows/main.yml)
+
 # FMGPU: Fast Matrix operations of the GPU
 
 This library allows to efficiently carry out matrix operations using GPU acceleration.
 The following functions are currently available:
+
 ## scale
 Multiply input matrix by a scalar value.
 `B = fmgpu.scale(A, alpha)`
