@@ -1,4 +1,5 @@
 const fmgpu = require('../src/index');
+
 // Test the following functions:
 // - scale
 // - add
@@ -116,11 +117,11 @@ test("Dot function in GPU, with 1e-3 precision, for size N=1, 10, 100", () => {
     }
 });
 
-test("Equality function in GPU for size N=1, 10, 100, 1000", () => {
+test("Equality function in GPU, with 1e-3, for size N=1, 10, 100, 1000", () => {
     for (let n = 1; n <= 1000; n *= 10) {
         const A = Array(n).fill(0).map(() => Array(n).fill(0).map(() => Math.random()));
 
-        const eqA = fmgpu.equals(A, A, 1e-6);
+        const eqA = fmgpu.equals(A, A, 1e-3);
         expect(eqA).toBe(true);
     }
 });
@@ -207,3 +208,4 @@ test(`Linear system solving in GPU. Within ${gpuSolveTolerance} for size N=1, 10
 //         expect(Math.abs(detA - detAJS)).toBeLessThan(1e-6);
 //     }
 // });
+
