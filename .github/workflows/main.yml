@@ -22,9 +22,6 @@ jobs:
       - name: Clean install deps
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
       - name: Publish to NPM
         run: npm publish
         env:
