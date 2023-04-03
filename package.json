@@ -1,6 +1,6 @@
 {
   "name": "js-fmgpu",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Fast Matrix operations accelerated by GPU.",
   "main": "index.js",
   "scripts": {
