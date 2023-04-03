@@ -6,6 +6,11 @@
   "scripts": {
     "test": "jest"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emilamaj/js-fmgpu.git"
+  },
+  "homepage": "https://github.com/emilamaj/js-fmgpu#readme",
   "author": "Emile Amajar",
   "license": "ISC",
   "devDependencies": {

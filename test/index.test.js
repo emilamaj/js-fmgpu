@@ -1,4 +1,4 @@
-const fmgpu = require('../src/index');
+const fmgpu = require('../index');
 
 // Test the following functions:
 // - scale
