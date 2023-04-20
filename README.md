@@ -3,7 +3,14 @@
 # FMGPU: Fast Matrix operations of the GPU
 
 This library allows to efficiently carry out matrix operations using GPU acceleration.
+The package is available on npm as [js-fmgpu](https://www.npmjs.com/package/js-fmgpu).
 The following functions are currently available:
+
+## Todo
+The following functions are to be implemented next:
+- det (GPU accelerated)
+- map
+- inverse
 
 ## scale
 Multiply input matrix by a scalar value.
@@ -44,9 +51,3 @@ Solves a linear system of equations using pure JS code (less overhead, better fo
 ## solveLinearSystem
 Solves a linear system of equations using GPU-accelerated code. (Adapted for matrices of size N > 200)
 `x = fmgpu.solveLinearSystem(A, b)`
-
-# Todo
-The following functions are to be implemented next:
--det (GPU accelerated)
--map
--inverse
